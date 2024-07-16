@@ -18,6 +18,12 @@ logger = GivLUT.logger
 giv_api = Flask(__name__)
 CORS(giv_api)
 
+# Stock response for r/w requests if REST_READONLY is set.
+def check_readonly():
+    if GiV_Settings.rest_readonly:
+        return json.dumps({'result': 'REST API is read-only'})
+    return None
+
 #Proxy Read Functions
 
 @giv_api.route('/', methods=['GET', 'POST'])
@@ -39,11 +45,11 @@ def getAll():
 
 @giv_api.route('/reboot', methods=['GET'])
 def reboot():
-    return wr.rebootinverter()
+    return check_readonly() or wr.rebootinverter()
 
 @giv_api.route('/restart', methods=['GET'])
 def restart():
-    return wr.rebootAddon()
+    return check_readonly() or wr.rebootAddon()
 
 #Publish last cached Invertor Data
 @giv_api.route('/readData', methods=['GET'])
@@ -64,54 +70,54 @@ def gtData():
 @giv_api.route('/enableChargeTarget', methods=['POST'])
 def enChargeTrgt():
     payload = request.get_json(silent=True, force=True)
-    return wr.enableChargeTarget(payload)
+    return check_readonly() or  wr.enableChargeTarget(payload)
 
 @giv_api.route('/enableChargeSchedule', methods=['POST'])
 def enableChrgSchedule():
     payload = request.get_json(silent=True, force=True)
-    return wr.enableChargeSchedule(payload)
+    return check_readonly() or wr.enableChargeSchedule(payload)
 
 @giv_api.route('/enableDischargeSchedule', methods=['POST'])
 def enableDischrgSchedule():
     payload = request.get_json(silent=True, force=True)
-    return wr.enableDischargeSchedule(payload)
+    return check_readonly() or wr.enableDischargeSchedule(payload)
 
 @giv_api.route('/enableDischarge', methods=['POST'])
 def enableBatDisharge():
     payload = request.get_json(silent=True, force=True)
-    return wr.enableDischarge(payload)
+    return check_readonly() or wr.enableDischarge(payload)
 
 ### Should this include a slot number and use setChargeTarget2 ###
 
 @giv_api.route('/setChargeTarget', methods=['POST'])
 def setChrgTarget():
     payload = request.get_json(silent=True, force=True)
-    return wr.setChargeTarget(payload)
+    return check_readonly() or wr.setChargeTarget(payload)
 
 @giv_api.route('/setDischargeTarget', methods=['POST'])
 def setDischrgTarget():
     payload = request.get_json(silent=True, force=True)
-    return wr.setDischargeTarget(payload)
+    return check_readonly() or wr.setDischargeTarget(payload)
 
 @giv_api.route('/setBatteryReserve', methods=['POST'])
 def setBattReserve():
     payload = request.get_json(silent=True, force=True)
-    return wr.setBatteryReserve(payload)
+    return check_readonly() or wr.setBatteryReserve(payload)
 
 @giv_api.route('/setChargeRate', methods=['POST'])
 def setChrgeRate():
     payload = request.get_json(silent=True, force=True)
-    return wr.setChargeRate(payload)
+    return check_readonly() or wr.setChargeRate(payload)
 
 @giv_api.route('/setDischargeRate', methods=['POST'])
 def setDischrgeRate():
     payload = request.get_json(silent=True, force=True)
-    return wr.setDischargeRate(payload)
+    return check_readonly() or wr.setDischargeRate(payload)
 
 @giv_api.route('/setPauseSlot', methods=['POST'])
 def setPausSlot():
     payload = request.get_json(silent=True, force=True)
-    return wr.setPauseSlot(payload)
+    return check_readonly() or wr.setPauseSlot(payload)
 
 ### Should these now include a slot number as the input? ###
 
@@ -119,29 +125,31 @@ def setPausSlot():
 def setChrgSlot1():
     payload = request.get_json(silent=True, force=True)
     payload['slot']=1
-    return wr.setChargeSlot(payload)
+    return check_readonly() or wr.setChargeSlot(payload)
 
 @giv_api.route('/setChargeSlot2', methods=['POST'])
 def setChrgSlot2():
     payload = request.get_json(silent=True, force=True)
     payload['slot']=2
-    return wr.setChargeSlot(payload)
+    return check_readonly() or wr.setChargeSlot(payload)
 
 @giv_api.route('/setDischargeSlot1', methods=['POST'])
 def setDischrgSlot1():
     payload = request.get_json(silent=True, force=True)
     payload['slot']=1
-    return wr.setDischargeSlot(payload)
+    return check_readonly() or wr.setDischargeSlot(payload)
 
 @giv_api.route('/setDischargeSlot2', methods=['POST'])
 def setDischrgSlot2():
     payload = request.get_json(silent=True, force=True)
     payload['slot']=2
-    return wr.setDischargeSlot(payload)
+    return check_readonly() or wr.setDischargeSlot(payload)
 
 
 @giv_api.route('/tempPauseDischarge', methods=['POST'])
 def tmpPauseDischrg():
+    if check_readonly():
+        return check_readonly()
     payload = request.get_json(silent=True, force=True)
     if payload == "Cancel" or payload == "0":
         if exists(".tpdRunning"):
@@ -155,6 +163,8 @@ def tmpPauseDischrg():
 
 @giv_api.route('/tempPauseCharge', methods=['POST'])
 def tmpPauseChrg():
+    if check_readonly():
+        return check_readonly()
     payload = request.get_json(silent=True, force=True)
     if payload == "Cancel" or payload == "0":
         if exists(".tpcRunning"):
@@ -168,6 +178,8 @@ def tmpPauseChrg():
 
 @giv_api.route('/forceCharge', methods=['POST'])
 def frceChrg():
+    if check_readonly():
+        return check_readonly()
     payload = request.get_json(silent=True, force=True)
     #Check if Cancel then return the right function
     if payload == "Cancel" or payload == "0":
@@ -181,6 +193,8 @@ def frceChrg():
 
 @giv_api.route('/forceExport', methods=['POST'])
 def frceExprt():
+    if check_readonly():
+        return check_readonly()
     payload = request.get_json(silent=True, force=True)
     if payload == "Cancel" or payload == "0":
         if exists(".FERunning"):
@@ -194,22 +208,22 @@ def frceExprt():
 @giv_api.route('/setBatteryMode', methods=['POST'])
 def setBattMode():
     payload = request.get_json(silent=True, force=True)
-    return wr.setBatteryMode(payload)
+    return check_readonly() or wr.setBatteryMode(payload)
 
 @giv_api.route('/setBatteryPauseMode', methods=['POST'])
 def setBattPausMode():
     payload = request.get_json(silent=True, force=True)
-    return wr.setBatteryPauseMode(payload)
+    return check_readonly() or wr.setBatteryPauseMode(payload)
 
 @giv_api.route('/setDateTime', methods=['POST'])
 def setDate():
     payload = request.get_json(silent=True, force=True)
-    return wr.setDateTime(payload)
+    return check_readony() or wr.setDateTime(payload)
 
 @giv_api.route('/switchRate', methods=['POST'])
 def swRates():
     payload = request.get_json(silent=True, force=True)
-    return wr.switchRate(payload)
+    return check_readonly() or wr.switchRate(payload)
 
 @giv_api.route('/settings', methods=['GET'])
 def getFileData():
@@ -221,6 +235,8 @@ def getFileData():
 
 @giv_api.route('/settings', methods=['POST'])
 def editFileData():
+    if check_readonly():
+        return check_readonly()
     file = open('/config/GivTCP/settings'+str(GiV_Settings.givtcp_instance)+'.json', 'r')
     data = json.load(file)
     file.close()
@@ -233,32 +249,32 @@ def editFileData():
 @giv_api.route('/setImportCap', methods=['POST'])
 def impCap():
     payload = request.get_json(silent=True, force=True)
-    return evc.setImportCap(payload)
+    return check_readonly() or evc.setImportCap(payload)
 
 @giv_api.route('/setCurrentLimit', methods=['POST'])
 def currLimit():
     payload = request.get_json(silent=True, force=True)
-    return evc.setCurrentLimit(payload)
+    return check_readonly() or evc.setCurrentLimit(payload)
 
 @giv_api.route('/setChargeControl', methods=['POST'])
 def chrgeControl():
     payload = request.get_json(silent=True, force=True)
-    return evc.setChargeControl(payload)
+    return check_readonly() or evc.setChargeControl(payload)
 
 @giv_api.route('/setChargeMode', methods=['POST'])
 def chrgMode():
     payload = request.get_json(silent=True, force=True)
-    return evc.setChargeMode(payload)
+    return check_readonly() or evc.setChargeMode(payload)
 
 @giv_api.route('/setChargingMode', methods=['POST'])
 def chrgingMode():
     payload = request.get_json(silent=True, force=True)
-    return evc.setChargingMode(payload)
+    return check_readonly() or evc.setChargingMode(payload)
 
 @giv_api.route('/setMaxSessionEnergy', methods=['POST'])
 def maxSession():
     payload = request.get_json(silent=True, force=True)
-    return evc.setMaxSessionEnergy(payload)
+    return check_readonly() or evc.setMaxSessionEnergy(payload)
 
 @giv_api.route('/getEVCCache', methods=['GET'])
 def gtEVCChce():

@@ -367,6 +367,7 @@ for inv in range(1,int(os.getenv('NUMINVERTORS'))+1):
         outp.write("    SOLCASTSITEID2=\""+str(os.getenv("SOLCASTSITEID2")+"\"\n"))
         outp.write("    PALM_WEIGHT=\""+str(os.getenv("PALM_WEIGHT")+"\"\n"))
         outp.write("    LOAD_HIST_WEIGHT=\""+str(os.getenv("LOAD_HIST_WEIGHT")+"\"\n"))
+        outp.write("    rest_readonly=\""+str(os.getenv("REST_READONLY")+"\"\n"))
 
         outp.write("    evc_enable=\""+os.getenv("EVC_ENABLE")+"\"\n")
         outp.write("    evc_ip_address=\""+os.getenv("EVC_IP_ADDRESS")+"\"\n")
